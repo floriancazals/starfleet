@@ -1,0 +1,31 @@
+name: ci
+
+# Vérifications à chaque poussée et sur chaque PR. Ce dépôt ne publie rien : ce
+# sont les apps qui l'importent qui construisent leurs images.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.12.2

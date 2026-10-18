@@ -1,0 +1,60 @@
+version: "2"
+linters:
+  default: none
+  enable:
+    - dupword
+    - forbidigo
+    - gocritic
+    - govet
+    - ineffassign
+    - misspell
+    - revive
+    - staticcheck
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - wastedassign
+    - whitespace
+  settings:
+    gocritic:
+      disabled-checks:
+        - appendAssign
+    misspell:
+      # The fleet's UI strings and domain vocabulary are French; keep the
+      # English dictionary from "correcting" French words that collide with
+      # English. Never run misspell --fix over this repo without reading the diff:
+      # in a sibling app it turned "démarrage" into "démarriage" inside an alert.
+      #
+      # Chacun de ces mots est du français correct que le dictionnaire anglais
+      # veut réécrire : partiel → particle, existant → existent, exemple →
+      # example, marrage → marriage *dans* « démarrage », compteur → computer,
+      # chambre → chamber. Le premier s'imprime sur la face de chaque reçu
+      # (« REÇU DE PAIEMENT PARTIEL ») et le dernier est une pièce de l'état des
+      # lieux — exactement les chaînes que personne ne relit après un --fix.
+      ignore-rules:
+        - partiel
+        - existant
+        - exemple
+        - marrage
+        - compteur
+        - compteurs
+        - chambre
+        # « révisable » : misspell y voit « visable » → « visible ».
+        - visable
+        # « ressemble » : le dictionnaire anglais veut « resemble ».
+        - ressemble
+        # « journalisé » : misspell y voit « journalis » → « journals ».
+        - journalis
+        # « portait » (« le récapitulatif ne portait que les recettes ») : misspell y
+        # voit « portrait ». Attrapé par le lint AVANT tout --fix, cette fois.
+        - portait
+        # « activité » : misspell y voit « activit » → « activist », et un --fix a
+        # bel et bien écrit « une activisté commerciale » dans l'avertissement du
+        # bail meublé, à l'écran. Trouvé en relisant la page, pas en relisant le diff.
+        - activit
+        # « présence » : misspell y voit « sence » → « sense ».
+        - sence
+  exclusions:
+    generated: lax
