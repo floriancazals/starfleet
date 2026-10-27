@@ -6,15 +6,30 @@ sécurité… Un changement commun se fait ici une fois, au lieu de dix-neuf foi
 
 ## Paquets
 
-| Paquet     | Rôle                                                                  |
-|------------|-----------------------------------------------------------------------|
-| `audience` | mesure d'audience envoyée par le serveur à l'Umami de la flotte       |
-| `gate`     | côté app de l'authentification centrale : vérifie tickets et révocations |
+| Paquet              | Rôle                                                                  |
+|---------------------|-----------------------------------------------------------------------|
+| `audience`          | mesure d'audience envoyée par le serveur à l'Umami de la flotte       |
+| `gate`              | côté app de l'authentification centrale : vérifie tickets et révocations |
+| `notify`            | messages Telegram : `Telegram` (salons de la config, texte), `Bot` (un salon par appel, texte), `Depot` (fichiers) |
+| `backup`            | copie quotidienne vérifiée de la base (ou d'un lot base + dossiers), scellée vers le disque de copie, alerte d'âge |
+| `backup/expedition` | le SEUL chemin par lequel une base part sur le réseau (un salon Telegram) |
+
+### Ce qui ne sort jamais
+
+`backup` n'a aucun chemin réseau, et `notify.Telegram` comme `notify.Bot` ne
+portent que du texte. Une base ne part dans un salon que si l'app importe
+`backup/expedition` et construit un `notify.Depot` : c'est réservé aux apps dont
+les données sont celles de leur auteur (todo, resa, escale-breakfast, lease).
+gate, ateliers et les apps des clients ne l'importent jamais.
+
+Chaque app garde son propre en-tête de copie scellée (`backup.Config.Magic`,
+« TRAIBAK1\n », « LEASEBAK1\n »…) : il fait partie du format, et le changer
+rendrait illisibles les copies déjà écrites.
 
 ## Utiliser starfleet dans une app
 
 ```sh
-go get github.com/floriancazals/starfleet@v0.1.0
+go get github.com/floriancazals/starfleet@v0.2.0
 ```
 
 puis importer `github.com/floriancazals/starfleet/audience`, etc. Le dépôt est
