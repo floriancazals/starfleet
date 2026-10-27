@@ -13,6 +13,12 @@ sécurité… Un changement commun se fait ici une fois, au lieu de dix-neuf foi
 | `notify`            | messages Telegram : `Telegram` (salons de la config, texte), `Bot` (un salon par appel, texte), `Depot` (fichiers) |
 | `backup`            | copie quotidienne vérifiée de la base (ou d'un lot base + dossiers), scellée vers le disque de copie, alerte d'âge |
 | `backup/expedition` | le SEUL chemin par lequel une base part sur le réseau (un salon Telegram) |
+| `antiabus`          | budget de tentatives par adresse (`Limiter`) et la règle de l'adresse client (`ClientIP`, par `X-Real-Ip`) |
+| `mail`              | courriels SMTP : `Mailer` (texte, HTML, pièces jointes) et `Courrier` (une pièce, plusieurs destinataires, copie cachée) |
+
+Et pour la CI : `.github/workflows/app.yml`, le workflow que chaque app appelle
+depuis son `ci.yml` (vérifier, puis publier l'image). La version de Go, celle du
+lint et les étapes se changent là.
 
 ### Ce qui ne sort jamais
 
@@ -29,7 +35,7 @@ rendrait illisibles les copies déjà écrites.
 ## Utiliser starfleet dans une app
 
 ```sh
-go get github.com/floriancazals/starfleet@v0.2.0
+go get github.com/floriancazals/starfleet@v0.3.0
 ```
 
 puis importer `github.com/floriancazals/starfleet/audience`, etc. Le dépôt est
@@ -45,7 +51,8 @@ prochain `go get …@vX.Y.Z` dans cette app, qui la redéploie.
 2. `git tag vX.Y.Z && git push origin vX.Y.Z`. Un tag publié ne se déplace
    **jamais** : le proxy et `sum.golang.org` ont enregistré son contenu, et un
    tag réécrit casse le build de toutes les apps qui l'épinglent.
-3. Relever la version dans chaque app.
+3. Relever la version dans chaque app (go.mod, et la référence du workflow
+   dans son `ci.yml` si `.github/workflows/app.yml` a changé).
 
 ## Règles
 

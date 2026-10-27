@@ -1,0 +1,75 @@
+name: app
+
+# Le workflow commun des apps de la flotte : vérifier à chaque poussée et sur
+# chaque PR, puis — si tout est vert, et seulement depuis `main` ou un tag —
+# construire et publier l'image. Chaque app l'appelle depuis son propre ci.yml :
+#
+#   jobs:
+#     ci:
+#       uses: floriancazals/starfleet/.github/workflows/app.yml@vX.Y.Z
+#       secrets: inherit
+#
+# L'image est construite par `make push` de l'app, qui sait pour quelles
+# architectures (arm64 pour les Pi, amd64 en plus pour le VPS), sans QEMU :
+# l'étage de build tourne sur l'architecture du runner et ne fait que
+# cross-compiler. Ce que la CI fait s'arrête au registre ; autodeploy.sh (dépôt
+# `servers`) voit l'image neuve dans les cinq minutes et bascule sans coupure.
+
+on:
+  workflow_call:
+    inputs:
+      generer:
+        description: "Les vues templ sont commitées : les régénérer et exiger que rien ne bouge."
+        type: boolean
+        default: true
+    secrets:
+      REGISTRY_USER:
+        required: false
+      REGISTRY_PASSWORD:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      # Sans ce contrôle, un .templ modifié sans régénération passerait
+      # inaperçu jusqu'à la prochaine image.
+      - name: Les vues générées sont à jour
+        if: inputs.generer
+        run: make generate && git diff --exit-code
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+      # La version du lint est celle-ci pour toute la flotte : la relever ici la
+      # relève partout (une version locale plus récente laisse passer ce que
+      # celle-ci refuse).
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.12.2
+
+  image:
+    needs: verifier
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # `make push` tire la version de `git describe` : sans l'historique
+          # complet ni les tags, toutes les images s'appelleraient « dev ».
+          fetch-depth: 0
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: registry.fcazals.fr
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Construire et pousser l'image
+        run: make push
