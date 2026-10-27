@@ -1,7 +1,7 @@
 // Package mail envoie les courriels de la flotte par SMTP, avec la seule
 // bibliothèque standard. Deux formes, qui étaient deux familles de copies :
 //
-//   - Mailer (folio, tpag, enseigne, lebonvoisin, resa) : un message à un
+//   - Mailer (folio, tpag, fcazals, lebonvoisin, resa) : un message à un
 //     destinataire, en texte avec une alternative HTML facultative, des pièces
 //     jointes, et l'identité d'expéditeur choisie à chaque envoi (Sender) ;
 //   - Courrier (lease, picsou) : une pièce — une quittance, une facture — jointe
