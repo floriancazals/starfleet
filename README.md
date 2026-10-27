@@ -4,17 +4,40 @@ Le code commun de la flotte : ce que chaque app (lease, todo, resa, folio…) co
 jusqu'ici dans son propre dépôt — audience, backup, gate, notify, en-têtes de
 sécurité… Un changement commun se fait ici une fois, au lieu de dix-neuf fois.
 
-## État
+## Paquets
 
-Dépôt neuf (18/10/2026) : rien n'est encore extrait. La première migration part
-de `lease`, l'app la moins critique (tâche todo 237).
+| Paquet     | Rôle                                                                  |
+|------------|-----------------------------------------------------------------------|
+| `audience` | mesure d'audience envoyée par le serveur à l'Umami de la flotte       |
+| `gate`     | côté app de l'authentification centrale : vérifie tickets et révocations |
+
+## Utiliser starfleet dans une app
+
+```sh
+go get github.com/floriancazals/starfleet@v0.1.0
+```
+
+puis importer `github.com/floriancazals/starfleet/audience`, etc. Le dépôt est
+public : la CI, le build Docker et le bac à sable du runner téléchargent le
+module par le proxy Go, sans jeton.
+
+## Publier une version
+
+Chaque app épingle une version : une correction ici n'atteint une app qu'au
+prochain `go get …@vX.Y.Z` dans cette app, qui la redéploie.
+
+1. `make test lint`, pousser sur `main`, attendre la CI verte.
+2. `git tag vX.Y.Z && git push origin vX.Y.Z`. Un tag publié ne se déplace
+   **jamais** : le proxy et `sum.golang.org` ont enregistré son contenu, et un
+   tag réécrit casse le build de toutes les apps qui l'épinglent.
+3. Relever la version dans chaque app.
 
 ## Règles
 
 - Un paquet n'entre ici que s'il est **identique** d'une app à l'autre, ou s'il
   peut le devenir par un réglage : ce qui est propre à une app reste dans l'app.
-- Rien de secret ici : ni clé, ni jeton, ni adresse interne en dur. La
-  configuration arrive de l'app qui importe le paquet.
+- Rien de secret ici, le dépôt est public : ni clé, ni jeton, ni adresse
+  interne en dur. La configuration arrive de l'app qui importe le paquet.
 - Les chaînes visibles sont en français : ne jamais lancer `misspell --fix` sans
   relire le diff (voir `.golangci.yml`).
 
